@@ -1,0 +1,27 @@
+name: Testes AgendaTest
+on:
+  push:
+  pull_request:
+jobs:
+  qualidade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm install --no-audit --no-fund
+      - name: Testes unitários e integração
+        run: npm test
+      - name: Instalar navegador Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Testes E2E
+        run: npm run test:e2e
+      - name: Evidências E2E
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore

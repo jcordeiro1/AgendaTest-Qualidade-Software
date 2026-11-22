@@ -1,0 +1,11 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {validarAgendamento,haConflito,criarAgenda} from '../../src/agenda.js';
+const base={nome:'Ana',data:'2026-12-10',hora:'09:00',duracao:30};
+test('CT01: aceita agendamento válido',()=>assert.equal(validarAgendamento(base),null));
+test('CT02: rejeita nome vazio',()=>assert.equal(validarAgendamento({...base,nome:' '}),'Nome obrigatório'));
+test('CT03: rejeita data impossível',()=>assert.equal(validarAgendamento({...base,data:'2026-02-30'}),'Data inválida'));
+test('CT04: rejeita duração abaixo do limite',()=>assert.match(validarAgendamento({...base,duracao:14}),/Duração/));
+test('CT05: aceita duração mínima de 15 minutos',()=>assert.equal(validarAgendamento({...base,duracao:15}),null));
+test('CT06: rejeita término após 18h',()=>assert.match(validarAgendamento({...base,hora:'17:45',duracao:30}),/Fora/));
+test('CT07: detecta conflito parcial',()=>assert.equal(haConflito([{...base,status:'ativo'}],{...base,hora:'09:15'}),true));
+test('CT08: aceita horário imediatamente seguinte',()=>assert.equal(haConflito([{...base,status:'ativo'}],{...base,hora:'09:30'}),false));
+test('CT09: cancelamento libera horário',()=>{const a=criarAgenda();const primeiro=a.agendar(base);assert.ok(primeiro.item);assert.ok(a.cancelar(primeiro.item.id).item);assert.ok(a.agendar(base).item);});
